@@ -1,0 +1,9 @@
+bin/
+obj/
+*.zip
+videos/
+screenshots/
+traces/
+.env
+playwright-report/
+TestResults/

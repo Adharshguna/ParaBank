@@ -1,0 +1,30 @@
+name: UI Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    - run: dotnet restore
+    - run: dotnet build --no-restore
+    - run: dotnet tool install --global Microsoft.Playwright.CLI
+    - run: playwright install
+    - run: dotnet test --no-build --verbosity normal --logger "console;verbosity=detailed" -- Playwright.Reporter=html
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          playwright-report/
+          traces/
+          screenshots/
+          videos/
