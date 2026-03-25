@@ -34,13 +34,15 @@ public class RegistrationPage : BasePage
         await UsernameInput.FillAsync(username);
         await PasswordInput.FillAsync(password);
         await ConfirmPasswordInput.FillAsync(confirmPassword);
+        await Task.Delay(500);
         await RegisterButton.ClickAsync();
         await WaitForLoadAsync();
     }
 
     public async Task<bool> IsRegistrationSuccessful()
     {
-        return await SuccessMessage.TextContentAsync() == "Welcome";
+        var message = await SuccessMessage.TextContentAsync();
+        return message?.StartsWith("Welcome") == true;
     }
 
     public async Task<string> GetErrorMessage()

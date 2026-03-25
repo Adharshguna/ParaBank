@@ -10,16 +10,17 @@ public class LoginPage : BasePage
     private ILocator PasswordInput => Page.Locator("#loginPanel input[name='password']");
     private ILocator LoginButton => Page.Locator("#loginPanel input[type='submit']");
     private ILocator RegisterLink => Page.Locator("a[href*='register']");
-    private ILocator ErrorMessage => Page.Locator(".error");
+    private ILocator ErrorMessage => Page.Locator(".title");
 
     public async Task NavigateToLogin()
     {
-        await Page.GotoAsync(DotNetEnv.Env.GetString("BASE_URL"));
+        await Page.GotoAsync("https://parabank.parasoft.com/");
         await WaitForLoadAsync();
     }
 
     public async Task LoginAsync(string username, string password)
     {
+
         await UsernameInput.FillAsync(username);
         await PasswordInput.FillAsync(password);
         await LoginButton.ClickAsync();

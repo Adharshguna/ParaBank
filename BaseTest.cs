@@ -6,32 +6,33 @@ namespace Parabank;
 [SetUpFixture]
 public class BaseTest
 {
-    public static IPlaywright? Playwright { get; private set; }
-    public static IBrowser? Browser { get; private set; }
-    public static IBrowserContext? Context { get; private set; }
+    public static IPlaywright? Playwright { get; set; }
+    public static IBrowser? Browser { get; set; }
+
+    private static readonly string[] BrowserArgs = new[]
+    {
+        "--disable-blink-features=AutomationControlled",
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-web-security"
+    };
 
     [OneTimeSetUp]
     public static async Task SetUp()
     {
-        DotNetEnv.Env.Load();
         Playwright = await Microsoft.Playwright.Playwright.CreateAsync();
         Browser = await Playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
-            Headless = bool.Parse(Environment.GetEnvironmentVariable("HEADLESS") ?? "false"),
-            SlowMo = 50,
-        });
-        Context = await Browser.NewContextAsync(new BrowserNewContextOptions
-        {
-            RecordVideoDir = "videos/",
-            RecordVideoSize = new RecordVideoSize() { Width = 1280, Height = 720 }
+            Headless = false,
+            SlowMo = 80,
+            Args = BrowserArgs
         });
     }
 
     [OneTimeTearDown]
     public static async Task TearDown()
     {
-        if (Context != null) await Context.CloseAsync();
         if (Browser != null) await Browser.CloseAsync();
-        if (Playwright != null) await Playwright.DisposeAsync();
+        if (Playwright != null) Playwright.Dispose();
     }
 }

@@ -7,74 +7,42 @@ using System.IO;
 namespace Parabank.Tests;
 
 [TestFixture]
-public class LoginTests : BaseTest
+public class LoginTests : TestBase
 {
-    private IPage _page;
-    private LoginPage _loginPage;
-
-    [SetUp]
-    public async Task SetUp()
-    {
-        _page = await Context!.NewContextAsync().NewPageAsync();
-        _loginPage = new LoginPage(_page);
-        await _page.Context.Tracing.StartAsync(new TracingStartOptions
-        {
-            Screenshots = true,
-            Snapshots = true,
-            Sources = true
-        });
-    }
-
-    [TearDown]
-    public async Task TearDown()
-    {
-        var testName = TestContext.CurrentContext.Test.Name;
-        var isFailed = TestContext.CurrentContext.Result.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Failed;
-        if (isFailed)
-        {
-            await _page.ScreenshotAsync(new PageScreenshotOptions { Path = Path.Combine("screenshots", $"{testName}.png") });
-            if (_page.Video != null)
-            {
-                await _page.Video.SaveAsAsync(Path.Combine("videos", $"{testName}.webm"));
-            }
-        }
-        await _page.Context.Tracing.StopAsync(new TracingStopOptions
-        {
-            Path = Path.Combine("traces", $"{testName}.zip")
-        });
-        await _page.CloseAsync();
-    }
-
     [Test]
     public async Task ValidLogin()
     {
-        await _loginPage.NavigateToLogin();
-        await _loginPage.LoginAsync(TestData.ValidUsername, TestData.ValidPassword);
-        Assert.IsTrue(await _loginPage.IsLoginSuccessful(), "Login should be successful");
+        var loginPage = new LoginPage(Page);
+        await loginPage.NavigateToLogin();
+        await loginPage.LoginAsync(TestData.ValidUsername, TestData.ValidPassword);
+        Assert.IsTrue(await loginPage.IsLoginSuccessful(), "Login should be successful");
     }
 
     [Test]
     public async Task InvalidLogin()
     {
-        await _loginPage.NavigateToLogin();
-        await _loginPage.LoginAsync(TestData.InvalidUsername, TestData.InvalidPassword);
-        Assert.IsFalse(await _loginPage.IsLoginSuccessful(), "Login should fail");
-        StringAssert.Contains("error", await _loginPage.GetErrorMessage(), "Error message should be displayed");
+        var loginPage = new LoginPage(Page);
+        await loginPage.NavigateToLogin();
+        await loginPage.LoginAsync(TestData.InvalidUsername, TestData.InvalidPassword);
+        Assert.IsFalse(await loginPage.IsLoginSuccessful(), "Login should fail");
+        StringAssert.Contains("Error!", await loginPage.GetErrorMessage(), "Error message should be displayed");
     }
 
     [Test]
     public async Task EmptyUsername()
     {
-        await _loginPage.NavigateToLogin();
-        await _loginPage.LoginAsync("", TestData.ValidPassword);
-        Assert.IsFalse(await _loginPage.IsLoginSuccessful(), "Login should fail with empty username");
+        var loginPage = new LoginPage(Page);
+        await loginPage.NavigateToLogin();
+        await loginPage.LoginAsync("", TestData.ValidPassword);
+        Assert.IsFalse(await loginPage.IsLoginSuccessful(), "Login should fail with empty username");
     }
 
     [Test]
     public async Task EmptyPassword()
     {
-        await _loginPage.NavigateToLogin();
-        await _loginPage.LoginAsync(TestData.ValidUsername, "");
-        Assert.IsFalse(await _loginPage.IsLoginSuccessful(), "Login should fail with empty password");
+        var loginPage = new LoginPage(Page);
+        await loginPage.NavigateToLogin();
+        await loginPage.LoginAsync(TestData.ValidUsername, "");
+        Assert.IsFalse(await loginPage.IsLoginSuccessful(), "Login should fail with empty password");
     }
 }

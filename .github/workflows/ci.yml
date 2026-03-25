@@ -1,4 +1,4 @@
-name: UI Tests
+name: Parabank UI Tests
 
 on:
   push:
@@ -9,22 +9,38 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: ['7.0.x']
+    
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
-    - run: dotnet restore
-    - run: dotnet build --no-restore
-    - run: dotnet tool install --global Microsoft.Playwright.CLI
-    - run: playwright install
-    - run: dotnet test --no-build --verbosity normal --logger "console;verbosity=detailed" -- Playwright.Reporter=html
-    - uses: actions/upload-artifact@v4
-      if: always()
+        dotnet-version: ${{ matrix.dotnet-version }}
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build project
+      run: dotnet build --no-restore --configuration Release
+    
+    - name: Install Playwright browsers
+      run: dotnet tool install --global Microsoft.Playwright.CLI && playwright install
+    
+    - name: Run tests
+      run: dotnet test --no-build --configuration Release --verbosity normal --logger "console;verbosity=detailed"
+    
+    - name: Upload test artifacts on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
       with:
-        name: test-results
+        name: test-artifacts-${{ matrix.dotnet-version }}
         path: |
-          playwright-report/
           traces/
           screenshots/
           videos/
+        retention-days: 7
