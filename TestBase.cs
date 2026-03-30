@@ -27,18 +27,23 @@ public class TestBase
         var testName = TestContext.CurrentContext.Test.Name;
         var isFailed = TestContext.CurrentContext.Result.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Failed;
 
+        // Get project root directory (3 levels up from bin)
+        var projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
+
         try
         {
             if (isFailed && Page != null && !Page.IsClosed)
             {
-                Directory.CreateDirectory("screenshots");
-                Directory.CreateDirectory("videos");
+                var screenshotsDir = Path.Combine(projectRoot, "screenshots");
+                var videosDir = Path.Combine(projectRoot, "videos");
+                Directory.CreateDirectory(screenshotsDir);
+                Directory.CreateDirectory(videosDir);
                 
                 try
                 {
                     await Page.ScreenshotAsync(new PageScreenshotOptions 
                     { 
-                        Path = Path.Combine("screenshots", $"{testName}.png") 
+                        Path = Path.Combine(screenshotsDir, $"{testName}.png") 
                     });
                 }
                 catch { /* Screenshot failed, continue */ }
@@ -47,20 +52,21 @@ public class TestBase
                 {
                     if (Page.Video != null)
                     {
-                        await Page.Video.SaveAsAsync(Path.Combine("videos", $"{testName}.webm"));
+                        await Page.Video.SaveAsAsync(Path.Combine(videosDir, $"{testName}.webm"));
                     }
                 }
                 catch { /* Video save failed, continue */ }
             }
 
-            Directory.CreateDirectory("traces");
+            var tracesDir = Path.Combine(projectRoot, "traces");
+            Directory.CreateDirectory(tracesDir);
             
-            // Stop tracing for this test
+            // Stop tracing for this test (always, not just on failure)
             try
             {
                 await Page.Context.Tracing.StopAsync(new TracingStopOptions
                 {
-                    Path = Path.Combine("traces", $"{testName}.zip")
+                    Path = Path.Combine(tracesDir, $"{testName}.zip")
                 });
             }
             catch { /* Tracing stop failed, continue */ }
